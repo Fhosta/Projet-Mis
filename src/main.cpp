@@ -89,7 +89,7 @@ void readStoneData() {
           std::cout << "GData : " << intToHexa(abs(rd.id)) << " " << rd.command << " " << rd.name << " " << rd.type << "\n";
           std::string stoneStart = rd.name;
           std::cout << "Bouton de démarrage : " <<  stoneStart.c_str() << "\n";
-          if(strcmp(stoneStart.c_str(),"start")== 0)
+          if(strcmp(stoneStart.c_str(),"start")== 0 && (rd.type == 2))
           boutonStoneStart = true;
 
           //std::this_thread::sleep_for(std::chrono::milliseconds(10));
@@ -128,28 +128,34 @@ void loop()
   char strTemperature[64];
   sprintf(strTemperature, "%g Celcius", temp);
   myStone->setLabel("temp", strTemperature);
-   
-
 
   //Gestion du temps de cuissson
-  if(boutonStoneStart == true)
+  if(boutonStoneStart == 1)
   {
-  compteur = 0;
-  if(temp >= tempBois)
-  {
-    while (compteur != compteurBois)
+    if(temp >= tempBois)
     {
-    compteur++;
-    Serial.println(compteur);
-    char strCuisson[64];
-    sprintf(strCuisson, "%d /20s", compteur);
-    myStone ->setLabel("cuisson",strCuisson);
-    delay(1000);
-    
+      while (compteur < compteurBois)
+      {
+        compteur++;
+        Serial.println(compteur);
+        char strCuisson[64];
+        sprintf(strCuisson, "%d /20s", compteur);
+        myStone ->setLabel("cuisson",strCuisson);
+        myStone ->setLabel("avertissement","Cuisson en cours...");
+        if(compteur == compteurBois)
+        {
+          myStone ->setLabel("avertissement","Cuisson du four terminé");
+        }
+        delay(1000);
+      }
     }
   }
-  }
-  boutonStoneStart == false;
-   delay(100);
+  boutonStoneStart = 0;
+  compteur = 0;
+  char strCuisson[64];
+  delay(600);
+  sprintf(strCuisson, "%d /20s", compteur);
+  myStone ->setLabel("cuisson",strCuisson);
+  myStone ->setLabel("avertissement","");
+  delay(100);
 }
-
