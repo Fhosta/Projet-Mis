@@ -57,7 +57,8 @@ MyStone *myStone;
 
 //Définition du bouton d'activation et  du système de compteur
 bool boutonStoneStart;
-  float tempBois = 25.0;
+  float tempBoisMin = 22.5;
+  float tempBoisMax = 27.5;
   int compteur = 0; 
   int compteurBois = 20;
 
@@ -136,29 +137,48 @@ void loop()
   myStone->setLabel("temp", strTemperature);
 
   //Gestion du temps de cuissson
-  if(boutonStoneStart == 1)
+  if(boutonStoneStart == true)
   {
-    if(temp >= tempBois)
+    myStone ->setLabel("avertissement","Attention à la température ");
+    if(tempBoisMin <= temp && temp < tempBoisMax )
     {
       while (compteur < compteurBois)
       {
+        float temp = myTemp.readTemperature();
+        char strTemperature[64];
+        sprintf(strTemperature, "%g Celcius", temp);
+        myStone->setLabel("temp", strTemperature);
         compteur++;
         Serial.println(compteur);
         char strCuisson[64];
         sprintf(strCuisson, "%d /20s", compteur);
         myStone ->setLabel("cuisson",strCuisson);
         myStone ->setLabel("avertissement","Cuisson en cours...");
+
+        //Si la température est trop haute un message s'affiche et on sort du programme 
+        if( temp > tempBoisMax)
+        {
+          delay(1000);
+          myStone ->setLabel("avertissement","Température trop haute ");
+          break;
+        }
+        //Si la température est trop basse un message s'affiche et on sort du programme 
+        if( temp < tempBoisMin)
+        {
+          delay(1000);
+          myStone ->setLabel("avertissement","Température trop basse ");
+          break;
+        }
         if(compteur == compteurBois)
         {
           myStone ->setLabel("avertissement","Cuisson du four terminé");
         }
         delay(1000);
       }
+        //Remise du bouton sur la position zéro pour ne pas retourner dans la boucle
+        boutonStoneStart = 0;
     }
   }
-
-  //Remise du bouton sur la position zéro pour ne pas retourner dans la boucle
-  boutonStoneStart = 0;
 
   // Compteur remis à zéro
   compteur = 0;
